@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import dbConnect from './lib/dbconn.js';
 import Blog from './models/blog.model.js';
-
+import router from './routes/create.route.js';
 // Load environment variables
 dotenv.config();
 
@@ -26,6 +26,10 @@ app.use(morgan('dev'));
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok', timestamp: new Date() });
 });
+
+
+app.use('/api/blogs', router);
+
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

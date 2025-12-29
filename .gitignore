@@ -49,6 +49,9 @@ uploads/
 temp/
 tmp/
 
+# Scripts (one-time utilities)
+backend/scripts/
+
 # OS
 Thumbs.db
 .DS_Store
