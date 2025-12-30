@@ -10,9 +10,11 @@
     "dev": "tsx watch server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "scrape": "tsx data/cheerio.ts"
+    "scrape": "tsx data/cheerio.ts",
+    "enhance": "tsx jobs/enhancer.ts"
   },
   "dependencies": {
+    "@openai/agents": "^0.3.7",
     "axios": "^1.13.2",
     "cheerio": "^1.1.2",
     "cors": "^2.8.5",
@@ -20,7 +22,8 @@
     "express": "^5.2.1",
     "mongodb": "^7.0.0",
     "mongoose": "^9.0.2",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "openai": "^6.15.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
