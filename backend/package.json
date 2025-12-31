@@ -11,7 +11,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "scrape": "tsx data/cheerio.ts",
-    "enhance": "tsx jobs/enhancer.ts"
+    "enhance": "tsx jobs/enhancer.ts",
+    "format": "tsx jobs/formatOriginalContent.ts"
   },
   "dependencies": {
     "@openai/agents": "^0.3.7",

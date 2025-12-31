@@ -5,10 +5,12 @@ dotenv.config();
 export interface IBlogPost extends Document {
     title: string;
     originalContent: string;
+    formattedOriginalContent: string; // LLM-cleaned version of original for comparison
     updatedContent: string;
     sources: string[];
     aiModel: string;
     improvedAt: Date;
+    formattedAt?: Date; // When the original was formatted
     improvementScore: number;
     url: string;
     author: string;
@@ -28,6 +30,13 @@ const blogSchema: Schema = new Schema({
     originalContent: {
         type: String,
         required: [true, 'Original content is required']
+    },
+    formattedOriginalContent: {
+        type: String,
+        default: '' // LLM-cleaned version of original content
+    },
+    formattedAt: {
+        type: Date // When the original was formatted
     },
     updatedContent: {
         type: String,

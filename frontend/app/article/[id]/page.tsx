@@ -17,7 +17,8 @@ import {
   ExternalLink, 
   FileText,
   Zap,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Sparkles
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import Navbar from "../../components/Navbar";
@@ -31,7 +32,7 @@ export default function ArticlePage() {
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<"enhanced" | "original">("enhanced");
+  const [activeTab, setActiveTab] = useState<"enhanced" | "formatted" | "original">("enhanced");
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -87,6 +88,7 @@ export default function ArticlePage() {
   }
 
   const hasEnhanced = article.updatedContent && article.updatedContent.length > 0;
+  const hasFormatted = article.formattedOriginalContent && article.formattedOriginalContent.length > 0;
 
   return (
     <div className="min-h-screen">
@@ -153,16 +155,27 @@ export default function ArticlePage() {
             <Card className="glass-card border-none overflow-hidden">
               <CardBody className="p-0">
                 {/* Tab Buttons */}
-                {hasEnhanced && (
+                {(hasEnhanced || hasFormatted) && (
                   <div className="p-3 sm:p-4 border-b border-white/10">
-                    <div className="tab-container inline-flex w-full sm:w-auto">
-                      <button
-                        onClick={() => setActiveTab("enhanced")}
-                        className={`tab-button flex-1 sm:flex-none flex items-center justify-center gap-2 ${activeTab === "enhanced" ? "active" : ""}`}
-                      >
-                        <Zap className="w-4 h-4" />
-                        <span>Enhanced</span>
-                      </button>
+                    <div className="tab-container inline-flex w-full sm:w-auto flex-wrap gap-1">
+                      {hasEnhanced && (
+                        <button
+                          onClick={() => setActiveTab("enhanced")}
+                          className={`tab-button flex-1 sm:flex-none flex items-center justify-center gap-2 ${activeTab === "enhanced" ? "active" : ""}`}
+                        >
+                          <Zap className="w-4 h-4" />
+                          <span>Enhanced</span>
+                        </button>
+                      )}
+                      {hasFormatted && (
+                        <button
+                          onClick={() => setActiveTab("formatted")}
+                          className={`tab-button flex-1 sm:flex-none flex items-center justify-center gap-2 ${activeTab === "formatted" ? "active" : ""}`}
+                        >
+                          <Sparkles className="w-4 h-4" />
+                          <span>Formatted</span>
+                        </button>
+                      )}
                       <button
                         onClick={() => setActiveTab("original")}
                         className={`tab-button flex-1 sm:flex-none flex items-center justify-center gap-2 ${activeTab === "original" ? "active" : ""}`}
@@ -230,8 +243,46 @@ export default function ArticlePage() {
                         </div>
                       )}
                     </div>
+                  ) : activeTab === "formatted" && hasFormatted ? (
+                    <div className="prose-content">
+                      <div className="mb-4 p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                        <p className="text-xs sm:text-sm text-purple-300 flex items-center gap-2">
+                          <Sparkles className="w-4 h-4" />
+                          This is the original content, cleaned and formatted by AI for better readability.
+                        </p>
+                      </div>
+                      <ReactMarkdown
+                        components={{
+                          h1: ({ children }) => <h1 className="text-xl sm:text-2xl font-semibold text-white mt-6 mb-3">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-lg sm:text-xl font-semibold text-white mt-6 mb-3 border-b border-white/10 pb-2">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-base sm:text-lg font-medium text-white mt-4 mb-2">{children}</h3>,
+                          p: ({ children }) => <p className="text-gray-300 mb-4 leading-relaxed text-sm sm:text-base">{children}</p>,
+                          ul: ({ children }) => <ul className="list-disc list-inside mb-4 space-y-2 text-sm sm:text-base">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal list-inside mb-4 space-y-2 text-sm sm:text-base">{children}</ol>,
+                          li: ({ children }) => <li className="text-gray-300">{children}</li>,
+                          a: ({ href, children }) => (
+                            <a href={href} className="text-white underline underline-offset-2 hover:text-gray-300" target="_blank" rel="noopener noreferrer">
+                              {children}
+                            </a>
+                          ),
+                          blockquote: ({ children }) => (
+                            <blockquote className="border-l-2 border-purple-500/50 pl-4 my-4 italic text-gray-400 text-sm sm:text-base">
+                              {children}
+                            </blockquote>
+                          ),
+                        }}
+                      >
+                        {article.formattedOriginalContent}
+                      </ReactMarkdown>
+                    </div>
                   ) : (
                     <div className="prose-content">
+                          <div className="mb-4 p-3 rounded-lg bg-gray-500/10 border border-gray-500/20">
+                            <p className="text-xs sm:text-sm text-gray-400 flex items-center gap-2">
+                              <FileText className="w-4 h-4" />
+                              This is the raw original content as scraped from the source.
+                            </p>
+                          </div>
                       {article.originalContent
                         .split(/\n+/)
                         .filter(p => p.trim().length > 0)

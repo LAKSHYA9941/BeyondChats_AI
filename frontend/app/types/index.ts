@@ -7,6 +7,8 @@ export interface Article {
   category: string;
   url: string;
   originalContent: string;
+  formattedOriginalContent?: string; // LLM-cleaned version of original
+  formattedAt?: string; // When the original was formatted
   updatedContent: string;
   sources: string[];
   aiModel: string;
