@@ -8,6 +8,7 @@ import { Spinner, Button } from "@heroui/react";
 import { RefreshCw, FileText } from "lucide-react";
 import Navbar from "./components/Navbar";
 import ArticleCard from "./components/ArticleCard";
+import LandingPage from "./components/LandingPage";
 import { Article } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -18,12 +19,6 @@ export default function Home() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
-    }
-  }, [status, router]);
 
   const fetchArticles = async () => {
     setLoading(true);
@@ -47,7 +42,8 @@ export default function Home() {
     if (session) fetchArticles();
   }, [session]);
 
-  if (status === "loading" || !session) {
+  // Show loading spinner while checking auth status
+  if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spinner size="lg" color="white" />
@@ -55,6 +51,12 @@ export default function Home() {
     );
   }
 
+  // Show landing page for unauthenticated users
+  if (!session) {
+    return <LandingPage />;
+  }
+
+  // Show articles for authenticated users
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -117,7 +119,7 @@ export default function Home() {
       <footer className="border-t border-white/10 py-6 sm:py-8">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-gray-500 text-xs sm:text-sm">
-            © 2024 BeyondChats
+            © BeyondChats
           </p>
         </div>
       </footer>

@@ -4,8 +4,8 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Button, Input, Card, CardBody, Divider } from "@heroui/react";
-import { Mail, Lock, ArrowRight, User } from "lucide-react";
+import { Mail, Lock, ArrowRight, User, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -47,25 +47,23 @@ export default function SignInPage() {
     router.refresh();
   };
 
-  const handleAdminLogin = async () => {
-    setIsLoading(true);
-    await signIn("credentials", {
-      email: "admin@beyondchats.com",
-      password: "admin123",
-      redirect: false,
-    });
-    router.push("/");
-    router.refresh();
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-black">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         className="w-full max-w-sm"
       >
+        {/* Back to Home */}
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8 link-hover"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </Link>
+
         {/* Logo & Title */}
         <div className="text-center mb-8">
           <motion.div
@@ -74,9 +72,9 @@ export default function SignInPage() {
             transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
             className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4"
           >
-            <span className="text-black font-bold text-2xl">BC</span>
+            <span className="text-black font-bold text-2xl font-heading">BC</span>
           </motion.div>
-          <h1 className="text-2xl font-bold text-white">
+          <h1 className="text-2xl font-bold text-white font-heading">
             BeyondChats
           </h1>
           <p className="text-gray-400 text-sm mt-1">
@@ -85,112 +83,118 @@ export default function SignInPage() {
         </div>
 
         {/* Main Card */}
-        <Card className="glass-card border-none">
-          <CardBody className="p-6">
-            {!showEmailForm ? (
-              <>
-                {/* Quick Access Buttons */}
-                <div className="space-y-3">
-                  {/* Guest Login - Primary */}
-                  <Button
-                    className="w-full btn bg-white text-black font-medium hover:bg-gray-200 h-12"
-                    size="lg"
-                    onClick={handleGuestLogin}
-                    isLoading={isLoading}
-                    startContent={!isLoading && <User className="w-5 h-5" />}
-                  >
-                    Continue as Guest
-                  </Button>
+        <div className="glass-card p-6 sm:p-8">
+          {!showEmailForm ? (
+            <>
+              {/* Quick Access Buttons */}
+              <div className="space-y-4">
+                {/* Guest Login - Primary */}
+                <button
+                  onClick={handleGuestLogin}
+                  disabled={isLoading}
+                  className="btn-primary w-full h-12"
+                >
+                  {isLoading ? (
+                    <span className="inline-block w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <User className="w-5 h-5" />
+                      Continue as Guest
+                    </>
+                  )}
+                </button>
+              </div>
 
-                  {/* Admin Login */}
-                  <Button
-                    variant="bordered"
-                    className="w-full btn border-white/20 text-white hover:bg-white/10 h-12"
-                    size="lg"
-                    onClick={handleAdminLogin}
-                    isDisabled={isLoading}
-                  >
-                    Login as Admin
-                  </Button>
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-white/10" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-transparent text-gray-500">or</span>
+                </div>
+              </div>
+
+              {/* Email option */}
+              <button
+                onClick={() => setShowEmailForm(true)}
+                className="btn-outline w-full"
+              >
+                <Mail className="w-4 h-4" />
+                Sign in with Email
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Email Form */}
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="input-field">
+                  <label htmlFor="signin-email">Email</label>
+                  <div className="relative">
+                    <input
+                      id="signin-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
                 </div>
 
-                <Divider className="my-5 bg-white/10" />
+                <div className="input-field">
+                  <label htmlFor="signin-password">Password</label>
+                  <div className="relative">
+                    <input
+                      id="signin-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
 
-                {/* Email option */}
-                <Button
-                  variant="light"
-                  className="w-full text-gray-400 hover:text-white"
-                  onClick={() => setShowEmailForm(true)}
-                  startContent={<Mail className="w-4 h-4" />}
+                {error && (
+                  <p className="text-red-400 text-sm text-center">{error}</p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="btn-primary w-full h-12"
                 >
-                  Sign in with Email
-                </Button>
-              </>
-            ) : (
-              <>
-                {/* Email Form */}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <Input
-                    type="email"
-                    label="Email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    startContent={<Mail className="w-4 h-4 text-gray-500" />}
-                    variant="bordered"
-                    classNames={{
-                      inputWrapper: "bg-white/5 border-white/10 hover:border-white/30",
-                      input: "text-white",
-                      label: "text-gray-400"
-                    }}
-                  />
-
-                  <Input
-                    type="password"
-                    label="Password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    startContent={<Lock className="w-4 h-4 text-gray-500" />}
-                    variant="bordered"
-                    classNames={{
-                      inputWrapper: "bg-white/5 border-white/10 hover:border-white/30",
-                      input: "text-white",
-                      label: "text-gray-400"
-                    }}
-                  />
-
-                  {error && (
-                    <p className="text-red-400 text-sm text-center">{error}</p>
+                  {isLoading ? (
+                    <span className="inline-block w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      Sign In
+                      <ArrowRight className="w-4 h-4" />
+                    </>
                   )}
+                </button>
+              </form>
 
-                  <Button
-                    type="submit"
-                    className="w-full btn bg-white text-black font-medium hover:bg-gray-200"
-                    size="lg"
-                    isLoading={isLoading}
-                    endContent={!isLoading && <ArrowRight className="w-4 h-4" />}
-                  >
-                    Sign In
-                  </Button>
-                </form>
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-white/10" />
+                </div>
+              </div>
 
-                <Divider className="my-5 bg-white/10" />
+              <button
+                onClick={() => setShowEmailForm(false)}
+                className="w-full text-gray-400 hover:text-white transition-colors text-sm"
+              >
+                ← Back to quick options
+              </button>
+            </>
+          )}
+        </div>
 
-                <Button
-                  variant="light"
-                  className="w-full text-gray-400 hover:text-white"
-                  onClick={() => setShowEmailForm(false)}
-                >
-                  ← Back to quick options
-                </Button>
-              </>
-            )}
-          </CardBody>
-        </Card>
-
-        <p className="text-xs text-gray-600 text-center mt-4">
-          Demo: admin@beyondchats.com / admin123
+        <p className="text-xs text-gray-600 text-center mt-6">
+          Need help? Contact support@beyondchats.com
         </p>
       </motion.div>
     </div>
