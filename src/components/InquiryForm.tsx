@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { buildWhatsAppUrl, buildMailtoUrl, SITE } from "@/lib/site";
+import { SITE } from "@/lib/site";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Name is too short").max(80),
@@ -37,28 +37,27 @@ const InquiryForm = ({ defaultDestination = "", defaultService = "", variant = "
     defaultValues: { destination: defaultDestination, service: defaultService },
   });
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     setSubmitting(true);
-    const lines = [
-      `New Trip Inquiry — ${SITE.name}`,
-      `Name: ${data.name}`,
-      `Phone: ${data.phone}`,
-      data.email ? `Email: ${data.email}` : "",
-      `Destination: ${data.destination}`,
-      data.travelDate ? `Travel date: ${data.travelDate}` : "",
-      data.pax ? `Travellers: ${data.pax}` : "",
-      data.service ? `Service: ${data.service}` : "",
-      data.notes ? `Notes: ${data.notes}` : "",
-    ].filter(Boolean).join("\n");
+    try {
+      const response = await fetch('/api/send-enquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
 
-    window.open(buildWhatsAppUrl(lines), "_blank", "noopener,noreferrer");
-    setTimeout(() => {
-      window.location.href = buildMailtoUrl(`Trip inquiry from ${data.name}`, lines);
-    }, 400);
+      if (!response.ok) {
+        throw new Error('Failed to send inquiry');
+      }
 
-    toast.success("Inquiry sent! We'll be in touch within 2 hours.");
-    reset({ destination: defaultDestination, service: defaultService });
-    setSubmitting(false);
+      toast.success("Inquiry sent! We'll be in touch within 2 hours.");
+      reset({ destination: defaultDestination, service: defaultService });
+    } catch (error) {
+      toast.error("Failed to send inquiry. Please try again later.");
+      console.error(error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const wrapClass = variant === "card"
@@ -111,7 +110,7 @@ const InquiryForm = ({ defaultDestination = "", defaultService = "", variant = "
         Send Inquiry
       </Button>
       <p className="text-xs text-muted-foreground mt-3">
-        On submit we open WhatsApp & email so you can confirm in one tap. Your details are not stored.
+        Your inquiry will be sent securely. We'll be in touch within 2 hours.
       </p>
     </form>
   );
