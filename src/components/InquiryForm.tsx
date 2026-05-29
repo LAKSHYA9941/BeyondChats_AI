@@ -40,20 +40,21 @@ const InquiryForm = ({ defaultDestination = "", defaultService = "", variant = "
   const onSubmit = async (data: FormData) => {
     setSubmitting(true);
     try {
-      const response = await fetch('/api/send-enquiry', {
+      const response = await fetch('/api/enquiries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send inquiry');
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || 'Failed to send inquiry');
       }
 
       toast.success("Inquiry sent! We'll be in touch within 2 hours.");
       reset({ destination: defaultDestination, service: defaultService });
-    } catch (error) {
-      toast.error("Failed to send inquiry. Please try again later.");
+    } catch (error: any) {
+      toast.error(`Failed to send inquiry: ${error.message}`);
       console.error(error);
     } finally {
       setSubmitting(false);
