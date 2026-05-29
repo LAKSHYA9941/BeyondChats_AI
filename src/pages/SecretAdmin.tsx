@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { Lock, Unlock, RefreshCw, Loader2, Calendar, MapPin, Users, Phone, Mail, StickyNote, Search, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Lock, Unlock, RefreshCw, Loader2, Calendar, MapPin, Users, Phone, Mail, StickyNote, Search, ChevronDown, ChevronUp, CheckCircle2, Undo2, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Seo from "@/components/Seo";
@@ -14,8 +14,11 @@ interface Enquiry {
   pax: string;
   service: string;
   notes: string;
+  resolvedAt: string | null;
   createdAt: string;
 }
+
+const TEN_MINUTES = 10 * 60 * 1000;
 
 const SecretAdmin = () => {
   const [password, setPassword] = useState("");
@@ -25,6 +28,36 @@ const SecretAdmin = () => {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [, setTick] = useState(0); // force re-render for countdown
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Tick every second to update countdowns
+  useEffect(() => {
+    const hasResolved = enquiries.some((e) => e.resolvedAt);
+    if (hasResolved) {
+      tickRef.current = setInterval(() => setTick((t) => t + 1), 1000);
+    } else if (tickRef.current) {
+      clearInterval(tickRef.current);
+      tickRef.current = null;
+    }
+    return () => {
+      if (tickRef.current) clearInterval(tickRef.current);
+    };
+  }, [enquiries]);
+
+  // Auto-remove expired resolved enquiries from local state
+  useEffect(() => {
+    const expired = enquiries.filter(
+      (e) => e.resolvedAt && Date.now() - new Date(e.resolvedAt).getTime() >= TEN_MINUTES
+    );
+    if (expired.length > 0) {
+      setEnquiries((prev) =>
+        prev.filter(
+          (e) => !e.resolvedAt || Date.now() - new Date(e.resolvedAt).getTime() < TEN_MINUTES
+        )
+      );
+    }
+  });
 
   const fetchEnquiries = useCallback(async (pw: string) => {
     setLoading(true);
@@ -60,6 +93,40 @@ const SecretAdmin = () => {
     fetchEnquiries(password);
   };
 
+  const toggleResolved = async (id: string, currentlyResolved: boolean) => {
+    const newResolved = !currentlyResolved;
+
+    // Optimistic update
+    setEnquiries((prev) =>
+      prev.map((e) =>
+        e._id === id
+          ? { ...e, resolvedAt: newResolved ? new Date().toISOString() : null }
+          : e
+      )
+    );
+
+    try {
+      const res = await fetch("/api/enquiries", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+        },
+        body: JSON.stringify({ id, resolved: newResolved }),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+    } catch {
+      // Revert on failure
+      setEnquiries((prev) =>
+        prev.map((e) =>
+          e._id === id
+            ? { ...e, resolvedAt: currentlyResolved ? new Date().toISOString() : null }
+            : e
+        )
+      );
+    }
+  };
+
   const filtered = enquiries.filter((e) => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
@@ -81,6 +148,14 @@ const SecretAdmin = () => {
     } catch {
       return d;
     }
+  };
+
+  const getCountdown = (resolvedAt: string) => {
+    const elapsed = Date.now() - new Date(resolvedAt).getTime();
+    const remaining = Math.max(0, TEN_MINUTES - elapsed);
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   // ── Login gate ──────────────────────────────────────────────
@@ -193,10 +268,15 @@ const SecretAdmin = () => {
 
           {filtered.map((enq) => {
             const isExpanded = expandedId === enq._id;
+            const isResolved = !!enq.resolvedAt;
             return (
               <div
                 key={enq._id}
-                className="bg-card border border-border rounded-2xl shadow-sm hover:shadow-elegant transition-smooth overflow-hidden"
+                className={`rounded-2xl shadow-sm hover:shadow-elegant transition-all duration-300 overflow-hidden border ${
+                  isResolved
+                    ? "bg-green-50/60 border-green-200/80 opacity-75"
+                    : "bg-card border-border"
+                }`}
               >
                 {/* Summary row */}
                 <button
@@ -208,7 +288,7 @@ const SecretAdmin = () => {
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <span className="font-semibold text-navy truncate">
+                      <span className={`font-semibold truncate ${isResolved ? "line-through text-muted-foreground" : "text-navy"}`}>
                         {enq.name}
                       </span>
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -218,6 +298,12 @@ const SecretAdmin = () => {
                       {enq.service && (
                         <span className="text-xs bg-primary/10 text-primary rounded-full px-2 py-0.5">
                           {enq.service}
+                        </span>
+                      )}
+                      {isResolved && (
+                        <span className="text-xs bg-green-100 text-green-700 rounded-full px-2 py-0.5 flex items-center gap-1">
+                          <Timer className="h-3 w-3" />
+                          {getCountdown(enq.resolvedAt!)}
                         </span>
                       )}
                     </div>
@@ -234,56 +320,92 @@ const SecretAdmin = () => {
 
                 {/* Expanded details */}
                 {isExpanded && (
-                  <div className="px-5 pb-5 pt-0 border-t border-border/50 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <Detail icon={<Phone className="h-4 w-4" />} label="Phone">
-                      <a
-                        href={`tel:${enq.phone}`}
-                        className="text-primary hover:underline"
-                      >
-                        {enq.phone}
-                      </a>
-                    </Detail>
-                    {enq.email && (
-                      <Detail
-                        icon={<Mail className="h-4 w-4" />}
-                        label="Email"
-                      >
+                  <div className="px-5 pb-5 pt-0 border-t border-border/50">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      <Detail icon={<Phone className="h-4 w-4" />} label="Phone">
                         <a
-                          href={`mailto:${enq.email}`}
-                          className="text-primary hover:underline break-all"
+                          href={`tel:${enq.phone}`}
+                          className="text-primary hover:underline"
                         >
-                          {enq.email}
+                          {enq.phone}
                         </a>
                       </Detail>
-                    )}
-                    {enq.travelDate && (
-                      <Detail
-                        icon={<Calendar className="h-4 w-4" />}
-                        label="Travel Date"
-                      >
-                        {enq.travelDate}
-                      </Detail>
-                    )}
-                    {enq.pax && (
-                      <Detail
-                        icon={<Users className="h-4 w-4" />}
-                        label="Travellers"
-                      >
-                        {enq.pax}
-                      </Detail>
-                    )}
-                    {enq.notes && (
-                      <div className="sm:col-span-2">
+                      {enq.email && (
                         <Detail
-                          icon={<StickyNote className="h-4 w-4" />}
-                          label="Notes"
+                          icon={<Mail className="h-4 w-4" />}
+                          label="Email"
                         >
-                          <span className="whitespace-pre-wrap">
-                            {enq.notes}
-                          </span>
+                          <a
+                            href={`mailto:${enq.email}`}
+                            className="text-primary hover:underline break-all"
+                          >
+                            {enq.email}
+                          </a>
                         </Detail>
-                      </div>
-                    )}
+                      )}
+                      {enq.travelDate && (
+                        <Detail
+                          icon={<Calendar className="h-4 w-4" />}
+                          label="Travel Date"
+                        >
+                          {enq.travelDate}
+                        </Detail>
+                      )}
+                      {enq.pax && (
+                        <Detail
+                          icon={<Users className="h-4 w-4" />}
+                          label="Travellers"
+                        >
+                          {enq.pax}
+                        </Detail>
+                      )}
+                      {enq.notes && (
+                        <div className="sm:col-span-2">
+                          <Detail
+                            icon={<StickyNote className="h-4 w-4" />}
+                            label="Notes"
+                          >
+                            <span className="whitespace-pre-wrap">
+                              {enq.notes}
+                            </span>
+                          </Detail>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Resolve / Unresolve button */}
+                    <div className="mt-4 pt-3 border-t border-border/30 flex items-center gap-3">
+                      <Button
+                        size="sm"
+                        variant={isResolved ? "outline" : "default"}
+                        className={
+                          isResolved
+                            ? "gap-2 border-amber-300 text-amber-700 hover:bg-amber-50"
+                            : "gap-2 bg-green-600 hover:bg-green-700 text-white"
+                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleResolved(enq._id, isResolved);
+                        }}
+                      >
+                        {isResolved ? (
+                          <>
+                            <Undo2 className="h-3.5 w-3.5" />
+                            Unresolve
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Mark Resolved
+                          </>
+                        )}
+                      </Button>
+                      {isResolved && (
+                        <span className="text-xs text-muted-foreground">
+                          Auto-removes in {getCountdown(enq.resolvedAt!)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
