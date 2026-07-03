@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, X, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/avifs/atf-logo_converted.avif";
+const logo = "https://res.cloudinary.com/cloud4lakshya/image/upload/v1783062974/atfacility_destinations/yjlj1s9n36cpcpf27xn3.avif";
 import { SITE } from "@/lib/site";
 import { cn } from "@/lib/utils";
 

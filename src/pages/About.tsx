@@ -1,8 +1,8 @@
 import { Award, Users, Map, Heart } from "lucide-react";
 import Seo from "@/components/Seo";
-import logo from "@/assets/avifs/atf-logo_converted.avif";
-import himalayas from "@/assets/avifs/dest-himalayas_converted.avif";
-import heritage from "@/assets/avifs/dest-heritage_converted.avif";
+const logo = "https://res.cloudinary.com/cloud4lakshya/image/upload/v1783062974/atfacility_destinations/yjlj1s9n36cpcpf27xn3.avif";
+const himalayas = "https://res.cloudinary.com/cloud4lakshya/image/upload/v1783062979/atfacility_destinations/omrmzg4s3mrisdpgh39k.avif";
+const heritage = "https://res.cloudinary.com/cloud4lakshya/image/upload/v1783062978/atfacility_destinations/mmw19nzbkobkjzeurve0.avif";
 
 const stats = [
   { icon: Award, value: "26+", label: "Years of trust" },

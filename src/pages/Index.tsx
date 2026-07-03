@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { destinations, categoryMeta } from "@/data/destinations";
 import { posts } from "@/data/blog";
 import { SITE } from "@/lib/site";
-import manali_market from "@/assets/avifs/manali_market_converted.avif"
-import vishnu_stambh from "@/assets/avifs/vishnu_stambh_converted.avif"
-import kufri from "@/assets/avifs/kufri_converted.avif"
-import kedar from "@/assets/avifs/shri_kedar_converted.avif"
+const manali_market = "https://res.cloudinary.com/cloud4lakshya/image/upload/v1783063004/atfacility_destinations/onjmsgwcs6bikcc5hmwp.avif";
+const vishnu_stambh = "https://res.cloudinary.com/cloud4lakshya/image/upload/v1783063020/atfacility_destinations/hskj9syymnejh9w4fese.avif";
+const kufri = "https://res.cloudinary.com/cloud4lakshya/image/upload/v1783062992/atfacility_destinations/e697svs5vw6rn7fvm61z.avif";
+const kedar = "https://res.cloudinary.com/cloud4lakshya/image/upload/v1783063013/atfacility_destinations/rtnshagapxxwutsdyxqd.avif";
 
 const services = [
   { icon: BedDouble, title: "Hotel Reservation", desc: "National & international stays — from heritage havelis to luxury resorts." },

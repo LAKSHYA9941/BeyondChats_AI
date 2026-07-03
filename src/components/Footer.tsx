@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone, Instagram, Facebook } from "lucide-react";
-import logo from "@/assets/avifs/atf-logo_converted.avif";
+const logo = "https://res.cloudinary.com/cloud4lakshya/image/upload/v1783062974/atfacility_destinations/yjlj1s9n36cpcpf27xn3.avif";
 import { SITE } from "@/lib/site";
 
 const Footer = () => (

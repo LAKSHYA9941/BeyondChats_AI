@@ -1,8 +1,8 @@
-import leh_ladakh from "@/assets/avifs/leh-ladakh_converted.avif";
-import rishikesh from "@/assets/avifs/rishikesh_converted.avif"
-import haridwar from "@/assets/avifs/haridwar_converted.avif"
-import manalroma from "@/assets/avifs/manali-romance_converted.avif"
-import golden from "@/assets/avifs/amritsar_converted.avif"
+const leh_ladakh = "https://res.cloudinary.com/cloud4lakshya/image/upload/v1783062994/atfacility_destinations/md0bll2pzyalfqudyxgw.avif";
+const rishikesh = "https://res.cloudinary.com/cloud4lakshya/image/upload/v1783063009/atfacility_destinations/rs1wyqpwrz4ngx4zcjli.avif";
+const haridwar = "https://res.cloudinary.com/cloud4lakshya/image/upload/v1783062982/atfacility_destinations/lf4wqxxqrnhgm721aowc.avif";
+const manalroma = "https://res.cloudinary.com/cloud4lakshya/image/upload/v1783062997/atfacility_destinations/zabdvslz3al1qpswdmt2.avif";
+const golden = "https://res.cloudinary.com/cloud4lakshya/image/upload/v1783062971/atfacility_destinations/pe9gp5we4gwfrxhqetk1.avif";
 
 export interface BlogPost {
   slug: string;
